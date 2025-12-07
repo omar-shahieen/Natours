@@ -73,7 +73,7 @@ exports.protect = catchAsync(async (req, res, next) => {
         token = req.headers.authorization.split(" ")[1];
     }
     if (!token)
-        return next(new AppError("You are not logge in! Please log in to get access.", 401));
+        return next(new AppError("You are not logged in! Please log in to get access.", 401));
     // token verification
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
     // check if users still exist 
@@ -128,6 +128,7 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
         return next(new AppError("error while sending an email , please try again later", 500));
     }
 })
+
 exports.resetPassword = catchAsync(async (req, res, next) => {
     //  get the user based on the token
     const hashedToken = crypto.createHash("sha256").update(req.params.token).digest('hex'); //hash token

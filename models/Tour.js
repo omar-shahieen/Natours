@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const slugify = require('slugify')
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -46,7 +46,8 @@ const tourSchema = new mongoose.Schema({
         type: Number,
         default: 4.5,
         min: [1, "Rating must be above 1.0"],
-        max: [5, "Rating must be below 5.0"]
+        max: [5, "Rating must be below 5.0"],
+        set: val => Math.round(val * 10) / 10 // 4.67 -> 46.7 -> 47 -> 4.7  
     },
     ratingsQuantity: {
         type: Number,
@@ -76,15 +77,53 @@ const tourSchema = new mongoose.Schema({
     secretTour: {
         type: Boolean,
         default: false,
-    }
+    }, startLocation: {
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ["Point"]
+        },
+        coordinates: [Number],
+        address: String,
+        description: String
+    },
+    locations: [
+        {
+            //GeoJson
+            type: {
+                type: String,
+                default: "Point",
+                enum: ["Point"]
+            },
+            coordinates: [Number],
+            address: String,
+            description: String,
+            day: Number // day for this location
+        }
+    ],
+    guides: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+    },]
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-})
+});
+// indexes 
+tourSchema.index({ price: 1, ratingsAverage: -1 }); // compound index
+tourSchema.index({ slug: 1 }); // field index
+tourSchema.index({ startLocation: "2dsphere" }); // field index for geospecial data
 // virtual fields
 tourSchema.virtual('durationWeeks').get(function () { // function give access to this keyword
     return this.duration / 7;
 });
+// virtual populate
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id'
+});
+
 // DOCUMENT middleware : this point to documnet processed
 
 // runs before .save and .create 
@@ -93,19 +132,33 @@ tourSchema.pre('save', function (next) { // pre save hook
     next();
 })
 
+
 // QUERY middlewares : this point to query
 tourSchema.pre(/^find/, function (next) {
     this.find({ secretTour: { $ne: true } }); // Documents where secretTour is false or missing or undefined
     next()
 })
 
-// aggregate middleware : this points to aggregate obj
-tourSchema.pre("aggregate", function (next) {
-    this.pipeline().unshift({
-        $match: { secretTour: { $ne: true } }
-    })
-    next()
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: "guides",
+        select: "-__v -passwordChangedAt"
+    }); // create a new query for guides 
+    next();
 })
+tourSchema.pre(/^findOne/, function (next) {
+    this.populate({
+        path: "reviews",
+    }); // populate reviews
+    next();
+})
+// aggregate middleware : this points to aggregate obj
+// tourSchema.pre("aggregate", function (next) {
+//     this.pipeline().unshift({
+//         $match: { secretTour: { $ne: true } }
+//     })
+//     next()
+// })
 const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;

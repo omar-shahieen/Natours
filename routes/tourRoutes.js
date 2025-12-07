@@ -1,6 +1,7 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
 const authController = require('../controllers/authController');
+const reviewRouter = require("./reviewRoutes");
 
 const router = express.Router();
 
@@ -14,18 +15,41 @@ router
   .get(tourController.getTourStats);
 router
   .route('/monthly-plan/:year')
-  .get(tourController.getMonthlyPlan);
+  .get(
+    authController.protect,
+    authController.restrictTo("admin", "guide-lead", "guide"),
+    tourController.getMonthlyPlan);
+
+
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(tourController.getTourWithIn);
+router
+  .route("/distances/:latlng/unit/:unit")
+  .get(tourController.getDistances);
+
 router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
-  .post(tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo("admin", "guide-lead"),
+    tourController.createTour);
 
 router
   .route('/:id')
   .get(tourController.getTour)
-  .patch(tourController.updateTour)
-  .delete(authController.protect,
+  .patch(
+    authController.protect,
+    authController.restrictTo("admin", "guide-lead"),
+    tourController.updateTour)
+  .delete(
+    authController.protect,
     authController.restrictTo("admin", "guide-lead"),
     tourController.deleteTour);
+
+// reviews
+
+router.use("/:tourId/reviews", reviewRouter);
 
 module.exports = router;

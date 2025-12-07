@@ -8,6 +8,7 @@ const xss = require("xss-clean");
 const hpp = require("hpp");
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -33,18 +34,20 @@ app.set('query parser', str => qs.parse(str));
 app.use(express.json({ limit: "10kb" })); // files greater than 10 kb is not accepted
 
 // data santanization against NoSQl query injection
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
 // data santanization against Xss
-app.use(xss());
+// app.use(xss());
 // prevent parameter pollution
 app.use(hpp({
-  whitelist: ['duration' , 'ratingsAverage','ratingsQuantity', "maxGroupSize", 'difficulty',"price"]
+  whitelist: ['duration', 'ratingsAverage', 'ratingsQuantity', "maxGroupSize", 'difficulty', "price"]
 }))
 // static file
 app.use(express.static(`${__dirname}/public`));
 // 3) ROUTES
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
+
 
 // 404 not found route 
 app.use((req, res, next) => {
