@@ -4,7 +4,7 @@ const qs = require('qs');
 const morgan = require('morgan');
 const rateLimit = require("express-rate-limit");
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require("xss-clean");
+const xss = require("xss");
 const hpp = require("hpp");
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
@@ -28,19 +28,31 @@ const limiter = rateLimit({
   message: "Too many request from this IP, try again in an hour!",
 });
 app.use("/api", limiter);
-// for query parsing
-app.set('query parser', str => qs.parse(str));
+
 // body pasrser
 app.use(express.json({ limit: "10kb" })); // files greater than 10 kb is not accepted
 
 // data santanization against NoSQl query injection
-// app.use(mongoSanitize());
+app.use((req, res, next) => {
+  mongoSanitize.sanitize(req.body);
+  mongoSanitize.sanitize(req.params);
+  mongoSanitize.sanitize(req.query);
+  next();
+});
 // data santanization against Xss
-// app.use(xss());
+
+app.use((req, res, next) => {
+  xss(req.body);
+  xss(req.params);
+  xss(req.query);
+  next();
+});
 // prevent parameter pollution
 app.use(hpp({
   whitelist: ['duration', 'ratingsAverage', 'ratingsQuantity', "maxGroupSize", 'difficulty', "price"]
 }))
+// for query parsing
+app.set('query parser', str => qs.parse(str));
 // static file
 app.use(express.static(`${__dirname}/public`));
 // 3) ROUTES
