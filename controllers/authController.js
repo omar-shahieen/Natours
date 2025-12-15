@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 // TODO Later : create max attempt login 
 // TODO Later : prevent cross site request forgery (csurf package)
 // TODO Later : create blackList of unTrasted JWT
@@ -46,15 +46,26 @@ exports.signup = catchAsync(async (req, res, next) => {
         passwordConfirm: req.body.passwordConfirm,
         name: req.body.name,
     };
+
     const newUser = await User.create(userData);
+    const url = `${req.protocol}://${req.get("host")}/me`;
+    await new Email(newUser, url).sendSayWelcome();
     createSendToken(newUser, 201, res);
 });
 
+exports.logout = (req, res) => {
+    res.cookie("jwt", "invalid Token", {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        status: "success"
+    })
 
+}
 exports.login = catchAsync(async (req, res, next) => {
     //  TODO Later : create max attempt login
     const { email, password } = req.body;
-
     //  check if email and password exist 
     if (!email || !password)//bad request
         return next(new AppError("Please provide email and password!", 400));
@@ -71,6 +82,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
         token = req.headers.authorization.split(" ")[1];
+    } else if (req.cookies.jwt) {
+        token = req.cookies.jwt
     }
     if (!token)
         return next(new AppError("You are not logged in! Please log in to get access.", 401));
@@ -84,9 +97,37 @@ exports.protect = catchAsync(async (req, res, next) => {
     if (!currentUser.hasChangePassword(decoded.iat))
         return next(new AppError("The user has changed passwords", 401));
     // pass
+    res.locals.user = currentUser;
     req.user = currentUser;
     next()
 })
+exports.isLoggedIn = async (req, res, next) => {
+    try {
+        // check if token exist 
+        if (req.cookies.jwt) {
+            const token = req.cookies.jwt;
+            // token verification
+            const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+            // check if users still exist 
+            const currentUser = await User.findById(decoded.id);
+
+            if (!currentUser)  // user delete account 
+                return next();
+            // check if user change password
+            if (!currentUser.hasChangePassword(decoded.iat))
+                return next();
+            // pass to pug template
+            res.locals.user = currentUser;
+            return next();
+        }
+    } catch (error) {
+        return next();
+
+    }
+
+    next()
+
+}
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {
         // roles ['admin', 'lead-guide']. role='user'
@@ -107,14 +148,9 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
     const token = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
     // send token as email
-    const resetURL = `${req.protocol}://${req.get("host")}/api/v1/resetPassword/${token}`;
-    const message = `Forget Password ? submit this url ${resetURL} with PATCH to reset your password`
     try {
-        sendEmail({
-            email: user.email,
-            subject: "reset password token <valid for 10 min> !",
-            message
-        })
+        const resetURL = `${req.protocol}://${req.get("host")}/api/v1/users/resetPassword/${token}`;
+        await new Email(user, resetURL).sendResetPassword();
         res.status(200).json({
             isSuccess: true,
             message: "reset token sent to email",

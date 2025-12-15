@@ -1,3 +1,5 @@
+const path = require("path");
+const cookieParser = require("cookie-parser");
 const express = require('express');
 const helmet = require('helmet');
 const qs = require('qs');
@@ -9,14 +11,41 @@ const hpp = require("hpp");
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
+// support template pug engine
+app.set("view engine", 'pug');
+
+app.set("views", path.join(__dirname, 'views')); //set views folder location
+
+
 
 // 1) MIDDLEWARES
+// static file
+app.use(express.static(path.join(__dirname, 'public')));
 // security headers
-app.use(helmet());
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["*"],
+//       scriptSrc: ["*", "'unsafe-inline'", "'unsafe-eval'"],
+//       styleSrc: ["*", "'unsafe-inline'"],
+//       imgSrc: ["*", "data:"],
+//       fontSrc: ["*", "data:"],
+//       connectSrc: ["*"],
+//       workerSrc: ["*", "blob:"],
+//       objectSrc: ["*"],
+//       mediaSrc: ["*"],
+//       frameSrc: ["*"]
+//     }
+//   })
+// );
+
+
 // dev Log
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -31,6 +60,7 @@ app.use("/api", limiter);
 
 // body pasrser
 app.use(express.json({ limit: "10kb" })); // files greater than 10 kb is not accepted
+app.use(cookieParser());// for cookie parsing
 
 // data santanization against NoSQl query injection
 app.use((req, res, next) => {
@@ -53,12 +83,19 @@ app.use(hpp({
 }))
 // for query parsing
 app.set('query parser', str => qs.parse(str));
-// static file
-app.use(express.static(`${__dirname}/public`));
+
+app.use((req, res, next) => {
+  next();
+})
+
 // 3) ROUTES
+// views Routes
+app.use("/", viewRouter);
+// API Routes
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/booking', bookingRouter);
 
 
 // 404 not found route 

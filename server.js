@@ -32,10 +32,15 @@ process.on('unhandledRejection', (err) => {
   server.close(() => {
     // close DB connection if you have one (example with mongoose)
     if (mongoose && mongoose.connection) {
-      mongoose.connection.close(false, () => {
-        console.log('MongoDB connection closed.');
-        process.exit(1); // exit with failure
-      });
+      mongoose.connection.close(false)
+        .then(() => {
+          console.log("MongoDB connection closed.");
+          process.exit(1);
+        })
+        .catch(error => {
+          console.error("Error closing MongoDB connection:", error);
+          process.exit(1);
+        });
     } else {
       process.exit(1);
     }
