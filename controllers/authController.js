@@ -1,9 +1,9 @@
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError');
-const Email = require('../utils/email');
+import { createHash } from 'crypto';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
+import Email from '../utils/email.js';
 // TODO Later : create max attempt login 
 // TODO Later : prevent cross site request forgery (csurf package)
 // TODO Later : create blackList of unTrasted JWT
@@ -39,7 +39,7 @@ const createSendToken = (user, statusCode, res) => {
 }
 
 
-exports.signup = catchAsync(async (req, res, next) => {
+export const signup = catchAsync(async (req, res, next) => {
     const userData = {
         email: req.body.email,
         password: req.body.password,
@@ -53,7 +53,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     createSendToken(newUser, 201, res);
 });
 
-exports.logout = (req, res) => {
+export function logout(req, res) {
     res.cookie("jwt", "invalid Token", {
         expires: new Date(Date.now() + 10 * 1000),
         httpOnly: true
@@ -63,7 +63,7 @@ exports.logout = (req, res) => {
     })
 
 }
-exports.login = catchAsync(async (req, res, next) => {
+export const login = catchAsync(async (req, res, next) => {
     //  TODO Later : create max attempt login
     const { email, password } = req.body;
     //  check if email and password exist 
@@ -77,7 +77,7 @@ exports.login = catchAsync(async (req, res, next) => {
     createSendToken(user, 200, res);
 
 });
-exports.protect = catchAsync(async (req, res, next) => {
+export const protect = catchAsync(async (req, res, next) => {
     // check if token exist 
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
@@ -101,7 +101,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.user = currentUser;
     next()
 })
-exports.isLoggedIn = async (req, res, next) => {
+export async function isLoggedIn(req, res, next) {
     try {
         // check if token exist 
         if (req.cookies.jwt) {
@@ -128,7 +128,7 @@ exports.isLoggedIn = async (req, res, next) => {
     next()
 
 }
-exports.restrictTo = (...roles) => {
+export function restrictTo(...roles) {
     return (req, res, next) => {
         // roles ['admin', 'lead-guide']. role='user'
         if (!roles.includes(req.user.role)) {
@@ -138,8 +138,8 @@ exports.restrictTo = (...roles) => {
         }
         next();
     };
-};
-exports.forgetPassword = catchAsync(async (req, res, next) => {
+}
+export const forgetPassword = catchAsync(async (req, res, next) => {
     // find user with this email
     const user = await User.findOne({ email: req.body.email });
     if (!user)
@@ -165,9 +165,9 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
     }
 })
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
+export const resetPassword = catchAsync(async (req, res, next) => {
     //  get the user based on the token
-    const hashedToken = crypto.createHash("sha256").update(req.params.token).digest('hex'); //hash token
+    const hashedToken = createHash("sha256").update(req.params.token).digest('hex'); //hash token
     const user = await User.findOne({
         passwordResetToken: hashedToken,
         passwordResetExpires: { $gt: Date.now() }
@@ -186,7 +186,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     createSendToken(user, 200, res);
 
 })
-exports.updatePassword = catchAsync(async (req, res, next) => {
+export const updatePassword = catchAsync(async (req, res, next) => {
     // get the user from the collection 
     const user = await User.findById(req.user.id).select("+password"); // req.user from protected route // - select because we exclude password from select
     // check if password entered is correct  

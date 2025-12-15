@@ -1,13 +1,13 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const bookingSchema = new mongoose.Schema({
+const bookingSchema = new Schema({
     tour: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Tour",
         required: [true, "Booking must belong to tour"]
     },
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: [true, "Booking must belong to user"]
 
@@ -39,5 +39,5 @@ bookingSchema.pre(/^find/, function (next) {
     }).populate("user");
     next()
 })
-const Booking = mongoose.model("Booking", bookingSchema)
-module.exports = Booking;
+const Booking = model("Booking", bookingSchema)
+export default Booking;

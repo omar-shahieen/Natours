@@ -1,17 +1,20 @@
+import Stripe from 'stripe';
+import catchAsync from '../utils/catchAsync.js';
+import Tour from '../models/Tour.js';
+import Booking from '../models/Booking.js';
+import { getAll, getOne, createOne, deleteOne, updateOne } from "./handlerFactory.js";
+import AppError from '../utils/AppError.js';
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const catchAsync = require('../utils/catchAsync');
-const Tour = require('../models/Tour');
-const Booking = require('../models/Booking');
-const factory = require("./handlerFactory");
-const AppError = require('../utils/AppError');
 
-exports.getCheckoutSession = catchAsync(async (req, res, next) => {
+
+export const getCheckoutSession = catchAsync(async (req, res, next) => {
     // get tour from Db
     const tour = await Tour.findById(req.params.tourId);
     if (!tour)
         return next(new AppError("Tour with that id is not found", 400));
     // create stripe session 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         mode: "payment",
@@ -48,24 +51,22 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 
 
 
-exports.createBookingCheckout = catchAsync(async (req, res, next) => {
+export const createBookingCheckout = catchAsync(async (req, res, next) => {
     // TEMP SOLUTION
     const { price, tour, user } = req.query;
 
-    console.log(req.query);
     if (!tour && !price && !user) return next();
 
-    const book = await Booking.create({
+    await Booking.create({
         tour,
         user,
         price
     });
-    console.log(book);
     res.redirect(`${req.protocol}://${req.get("host")}/`);
 })
 
-exports.getAllBookings = factory.getAll(Booking);
-exports.getOneBookings = factory.getOne(Booking);
-exports.createBookings = factory.createOne(Booking);
-exports.deleteBookings = factory.deleteOne(Booking);
-exports.updateBookings = factory.updateOne(Booking);
+export const getAllBookings = getAll(Booking);
+export const getOneBookings = getOne(Booking);
+export const createBookings = createOne(Booking);
+export const deleteBookings = deleteOne(Booking);
+export const updateBookings = updateOne(Booking);

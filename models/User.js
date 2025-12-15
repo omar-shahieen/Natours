@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
-const crypto = require("crypto")
+import { Schema, model } from 'mongoose';
+import validator from 'validator';
+import bcrypt from 'bcryptjs';
+import crypto from "crypto";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
     email: {
         type: String,
         required: [true, "email field is required"],
@@ -104,6 +104,6 @@ userSchema.methods.generatePasswordResetToken = function () {
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 min from now 
     return resetToken; // return the  unIncrepted token to send it by email 
 }
-const User = mongoose.model("User", userSchema);
+const User = model("User", userSchema);
 
-module.exports = User;
+export default User;

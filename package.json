@@ -4,10 +4,10 @@
   "description": "",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "server.js",
+  "type": "module",
+  "exports": "./server.js",
   "scripts": {
-    "start": "nodemon server",
+    "start": "nodemon  server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -16,7 +16,6 @@
     "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
   },
   "dependencies": {
-    "@maptiler/client": "^2.6.0",
     "@maptiler/sdk": "^3.9.0",
     "@stripe/stripe-js": "^8.5.3",
     "axios": "^1.13.2",
@@ -24,6 +23,7 @@
     "cookie-parser": "^1.4.7",
     "core-js": "^3.47.0",
     "dotenv": "^17.2.3",
+    "esm": "^3.2.25",
     "express": "^5.1.0",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.2.1",

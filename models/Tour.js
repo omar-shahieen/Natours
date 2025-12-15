@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+import { Schema, model } from 'mongoose';
+import slugify from 'slugify';
 
-const tourSchema = new mongoose.Schema({
+const tourSchema = new Schema({
     name: {
         type: String,
         required: [true, "A tour must have a name"],
@@ -102,7 +102,7 @@ const tourSchema = new mongoose.Schema({
         }
     ],
     guides: [{
-        type: mongoose.Schema.ObjectId,
+        type: Schema.ObjectId,
         ref: 'User',
     },]
 }, {
@@ -159,6 +159,6 @@ tourSchema.pre(/^findOne/, function (next) {
 //     })
 //     next()
 // })
-const Tour = mongoose.model('Tour', tourSchema);
+const Tour = model('Tour', tourSchema);
 
-module.exports = Tour;
+export default Tour;

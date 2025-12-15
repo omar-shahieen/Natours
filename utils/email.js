@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer");
-const pug = require("pug");
-const htmlToText = require("html-to-text");
+import { createTransport } from "nodemailer";
+import { renderFile } from "pug";
+import { convert } from "html-to-text";
 
 class Email {
     constructor(user, url) {
@@ -13,7 +13,7 @@ class Email {
 
     newTransport() {
         if (process.env.NODE_ENV === "production") {
-            return nodemailer.createTransport({
+            return createTransport({
                 service: 'SendGrid',
                 auth: {
                     user: process.env.EMAIL_USERNAME_SENDGRID,
@@ -22,7 +22,7 @@ class Email {
             });;
         }
         // use mailtrailer to test 
-        return nodemailer.createTransport({
+        return createTransport({
             host: process.env.EMAIL_HOST_MAILTRAP,
             port: process.env.EMAIL_PORT_MAILTRAP,
             auth: {
@@ -36,7 +36,7 @@ class Email {
 
         // render html based on a pug template
 
-        const html = pug.renderFile(`${__dirname}/../views/emails/${template}.pug`, {
+        const html = renderFile(`${import.meta.dirname}/../views/emails/${template}.pug`, {
             subject,
             url: this.url,
             firstName: this.firstName
@@ -50,7 +50,7 @@ class Email {
             to: this.to,
             subject: subject,
             html,
-            text: htmlToText.convert(html)
+            text: convert(html)
         }
 
         // create a transport and send email
@@ -69,4 +69,4 @@ class Email {
 
 }
 
-module.exports = Email;
+export default Email;

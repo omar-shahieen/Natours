@@ -1,7 +1,9 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 
-dotenv.config({ path: './config.env' });
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config({ path: "./config.env" });
+
 
 // for sync errors
 process.on('uncaughtException', (err) => {
@@ -9,8 +11,12 @@ process.on('uncaughtException', (err) => {
   console.log(err);
   process.exit(1);
 
-})
-const app = require('./app');
+});
+
+
+
+// eslint-disable-next-line 
+import app from "./app.js";
 
 //  database connection
 const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DB_PASSWORD).replace("<USER_NAME>", process.env.DB_USERNAME);

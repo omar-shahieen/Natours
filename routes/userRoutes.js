@@ -1,35 +1,35 @@
-const express = require('express');
-const userController = require("../controllers/userController");
-const authController = require("../controllers/authController");
+import { Router } from 'express';
+import { uploadImage, resizeUserPhoto, updateMe, deleteMe, getMe, getUser, getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController.js";
+import { signup, login, logout, forgetPassword, resetPassword, protect, updatePassword, restrictTo } from "../controllers/authController.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/signup", authController.signup);
-router.post("/login", authController.login);
-router.get("/logout", authController.logout);
-router.post("/forgetPassword", authController.forgetPassword);
-router.patch("/resetPassword/:token", authController.resetPassword);
+router.post("/signup", signup);
+router.post("/login", login);
+router.get("/logout", logout);
+router.post("/forgetPassword", forgetPassword);
+router.patch("/resetPassword/:token", resetPassword);
 
 // protected routes 
-router.use(authController.protect);
+router.use(protect);
 
-router.patch("/updateMyPassword", authController.updatePassword);
-router.patch("/updateMe", userController.uploadImage, userController.resizeUserPhoto, userController.updateMe);
-router.delete("/deleteMe", userController.deleteMe);
-router.get("/me", userController.getMe, userController.getUser);
+router.patch("/updateMyPassword", updatePassword);
+router.patch("/updateMe", uploadImage, resizeUserPhoto, updateMe);
+router.delete("/deleteMe", deleteMe);
+router.get("/me", getMe, getUser);
 
 // admin restricted routes 
-router.use(authController.restrictTo("admin"));
+router.use(restrictTo("admin"));
 
 router
   .route('/')
-  .get(userController.getAllUsers)
-  .post(userController.createUser);
+  .get(getAllUsers)
+  .post(createUser);
 
 router
   .route('/:id')
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+  .get(getUser)
+  .patch(updateUser)
+  .delete(deleteUser);
 
-module.exports = router;
+export default router;

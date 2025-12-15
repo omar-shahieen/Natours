@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const Tour = require("./Tour");
+import { Schema, model } from "mongoose";
+import Tour from "./Tour.js";
 
-const reviewSchema = new mongoose.Schema({
+const reviewSchema = new Schema({
     review: {
         type: String,
         required: [true, "review text is required"],
@@ -16,12 +16,12 @@ const reviewSchema = new mongoose.Schema({
         min: 0
     },
     tour: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Tour",
         required: [true, "Review should belong to a tour"]
     },
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: [true, "Review should belong to a user"]
     },
@@ -95,6 +95,6 @@ reviewSchema.post(/^findOneAnd/, async function () {
         await this.r.constructor.calcAverageRatings(this.r.tour);
     }
 });
-const Review = mongoose.model("Review", reviewSchema);
+const Review = model("Review", reviewSchema);
 
-module.exports = Review;
+export default Review;

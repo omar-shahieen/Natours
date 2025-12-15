@@ -1,9 +1,9 @@
 /* eslint-disable */
 
-import { displayMap } from './maptiler';
-import { login, logout } from './login';
-import { updateSetting } from './updateSetting';
-import { bookTour } from './stripe';
+import { displayMap } from './maptiler.js';
+import { login, logout } from './login.js';
+import { updateSetting } from './updateSetting.js';
+import { bookTour } from './stripe.js';
 
 // DOM ELEMENTS
 const maptiler = document.getElementById('map');

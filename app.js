@@ -1,32 +1,33 @@
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const express = require('express');
-const helmet = require('helmet');
-const qs = require('qs');
-const morgan = require('morgan');
-const rateLimit = require("express-rate-limit");
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require("xss");
-const hpp = require("hpp");
-const tourRouter = require('./routes/tourRoutes');
-const userRouter = require('./routes/userRoutes');
-const reviewRouter = require('./routes/reviewRoutes');
-const viewRouter = require('./routes/viewRoutes');
-const bookingRouter = require('./routes/bookingRoutes');
-const AppError = require('./utils/AppError');
-const globalErrorHandler = require('./controllers/errorController');
+import { join } from "path";
+import cookieParser from "cookie-parser";
+import express from 'express';
+import helmet from 'helmet';
+import { parse } from 'qs';
+import morgan from 'morgan';
+import rateLimit from "express-rate-limit";
+import { sanitize } from 'express-mongo-sanitize';
+import xss from "xss";
+import hpp from "hpp";
+import tourRouter from './routes/tourRoutes.js';
+import userRouter from './routes/userRoutes.js';
+import reviewRouter from './routes/reviewRoutes.js';
+import viewRouter from './routes/viewRoutes.js';
+import bookingRouter from './routes/bookingRoutes.js';
+import AppError from './utils/AppError.js';
+import globalErrorHandler from './controllers/errorController.js';
+
 
 const app = express();
 // support template pug engine
 app.set("view engine", 'pug');
 
-app.set("views", path.join(__dirname, 'views')); //set views folder location
+app.set("views", join(import.meta.dirname, 'views')); //set views folder location
 
 
 
 // 1) MIDDLEWARES
 // static file
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(join(import.meta.dirname, 'public')));
 // security headers
 // app.use(
 //   helmet.contentSecurityPolicy({
@@ -64,9 +65,9 @@ app.use(cookieParser());// for cookie parsing
 
 // data santanization against NoSQl query injection
 app.use((req, res, next) => {
-  mongoSanitize.sanitize(req.body);
-  mongoSanitize.sanitize(req.params);
-  mongoSanitize.sanitize(req.query);
+  sanitize(req.body);
+  sanitize(req.params);
+  sanitize(req.query);
   next();
 });
 // data santanization against Xss
@@ -82,7 +83,7 @@ app.use(hpp({
   whitelist: ['duration', 'ratingsAverage', 'ratingsQuantity', "maxGroupSize", 'difficulty', "price"]
 }))
 // for query parsing
-app.set('query parser', str => qs.parse(str));
+app.set('query parser', str => parse(str));
 
 app.use((req, res, next) => {
   next();
@@ -106,4 +107,4 @@ app.use((req, res, next) => {
 // error handler middleware
 app.use(globalErrorHandler)
 
-module.exports = app;
+export default app;

@@ -1,26 +1,15 @@
-const multer = require('multer');
-const sharp = require('sharp');
-const User = require('../models/User');
-const AppError = require('../utils/AppError');
-const catchAsync = require('../utils/catchAsync');
-const factory = require("./handlerFactory");
+import multer, { memoryStorage } from 'multer';
+import sharp from 'sharp';
+import User from '../models/User.js';
+import AppError from '../utils/AppError.js';
+import catchAsync from '../utils/catchAsync.js';
+import { getAll, getOne, createOne, updateOne, deleteOne } from "./handlerFactory.js";
 
 
-// directly store image to disk
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "public/img/users/")
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = file.mimetype.split("/")[1];
-//     const fileName = `user-${req.user.id}-${Date.now()}.${ext}`;
-//     cb(null, fileName);
-//   }
-// });
 
 
 // keep in memory for image processing 
-const multerStorage = multer.memoryStorage();
+const multerStorage = memoryStorage();
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image")) {
     cb(null, true)
@@ -42,9 +31,9 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.uploadImage = upload.single("photo");
+export const uploadImage = upload.single("photo");
 
-exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
+export const resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) next();
 
 
@@ -59,7 +48,7 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
 
   next();
 });
-exports.updateMe = catchAsync(async (req, res, next) => {
+export const updateMe = catchAsync(async (req, res, next) => {
   // create error if user posts password data 
   if (req.body.password || req.body.passwordConfirm)
     return next(new AppError("You can not update password here ,user route /updateMyPassword", 400)); // bad req
@@ -80,26 +69,25 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     }
   });
 });
-exports.deleteMe = catchAsync(async (req, res, next) => {
+export const deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
   res.status(204).json({
     status: 'success',
     data: null
   });
 });
-exports.getMe = (req, res, next) => {
+export function getMe(req, res, next) {
   req.params.id = req.user.id;
   next();
 }
 
-// CRUD for user with admin previligaes
-exports.getAllUsers = factory.getAll(User);
+export const getAllUsers = getAll(User);
 
-exports.getUser = factory.getOne(User);
+export const getUser = getOne(User);
 
-exports.createUser = factory.createOne(User);
+export const createUser = createOne(User);
 
-// do not update password here
-exports.updateUser = factory.updateOne(User);
+export const updateUser = updateOne(User);
 
-exports.deleteUser = factory.deleteOne(User);
+export const deleteUser = deleteOne(User);
+
