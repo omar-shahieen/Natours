@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import Tour from "./Tour.js";
+import Tour from "./Tour.ts";
 
 const reviewSchema = new Schema({
     review: {

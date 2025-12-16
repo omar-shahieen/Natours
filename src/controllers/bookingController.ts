@@ -1,9 +1,9 @@
 import Stripe from 'stripe';
-import catchAsync from '../src/utils/catchAsync.js';
-import Tour from '../src/models/Tour.js';
-import Booking from '../src/models/Booking.js';
-import { getAll, getOne, createOne, deleteOne, updateOne } from "./handlerFactory.js";
-import AppError from '../src/utils/AppError.js';
+import catchAsync from '../utils/catchAsync.ts';
+import Tour from '../models/Tour.ts';
+import Booking from '../models/Booking.ts';
+import { getAll, getOne, createOne, deleteOne, updateOne } from "./handlerFactory.ts";
+import AppError from '../utils/AppError.ts';
 
 
 

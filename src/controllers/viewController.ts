@@ -1,7 +1,7 @@
-import Booking from "../models/Booking.js";
-import Tour from "../models/Tour.js";
-import AppError from "../utils/AppError.js";
-import catchAsync from "../utils/catchAsync.js";
+import Booking from "../models/Booking.ts";
+import Tour from "../models/Tour.ts";
+import AppError from "../utils/AppError.ts";
+import catchAsync from "../utils/catchAsync.ts";
 
 
 export const getOverview = catchAsync(async (req, res) => {

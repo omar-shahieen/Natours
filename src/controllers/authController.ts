@@ -1,9 +1,9 @@
 import { createHash } from 'crypto';
 import jwt from 'jsonwebtoken';
-import User from '../src/models/User.js';
-import catchAsync from '../src/utils/catchAsync.js';
-import AppError from '../src/utils/AppError.js';
-import Email from '../src/utils/email.js';
+import User from '../models/User.ts';
+import catchAsync from '../utils/catchAsync.ts';
+import AppError from '../utils/AppError.ts';
+import Email from '../utils/email.ts';
 // TODO Later : create max attempt login 
 // TODO Later : prevent cross site request forgery (csurf package)
 // TODO Later : create blackList of unTrasted JWT

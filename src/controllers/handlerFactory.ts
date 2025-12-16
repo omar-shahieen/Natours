@@ -1,6 +1,6 @@
-import APIFeatures from "../utils/APIFeatures.js";
-import AppError from "../utils/AppError.js";
-import catchAsync from "../utils/catchAsync.js";
+import APIFeatures from "../utils/APIFeatures.ts";
+import AppError from "../utils/AppError.ts";
+import catchAsync from "../utils/catchAsync.ts";
 
 export function deleteOne(model) {
     return catchAsync(async (req, res, next) => {

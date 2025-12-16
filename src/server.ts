@@ -16,7 +16,7 @@ process.on('uncaughtException', (err) => {
 
 
 // eslint-disable-next-line 
-import app from "./app.js";
+import app from "../app.ts";
 
 //  database connection
 const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DB_PASSWORD).replace("<USER_NAME>", process.env.DB_USERNAME);
@@ -32,7 +32,7 @@ const server = app.listen(port, () => {
 
 // unhandledRejection global error handling 
 process.on('unhandledRejection', (err) => {
-  console.log(err.name, err.message);
+  console.log(err.name: string, err.message : string);
   console.log("unhandledRejection : shutting down...");
   // stop accepting new requests
   server.close(() => {

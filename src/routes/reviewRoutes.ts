@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getAllReviews, setTourUserIds, validateTourId, createReview, getReview, updateReview, deleteReview } from "../controllers/reviewController.js";
-import { protect, restrictTo } from "../controllers/authController.js";
+import { getAllReviews, setTourUserIds, validateTourId, createReview, getReview, updateReview, deleteReview } from "../controllers/reviewController.ts";
+import { protect, restrictTo } from "../controllers/authController.ts";
 
 
 const router = Router({ mergeParams: true });

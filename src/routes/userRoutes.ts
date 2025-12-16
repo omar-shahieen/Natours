@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { uploadImage, resizeUserPhoto, updateMe, deleteMe, getMe, getUser, getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController.js";
-import { signup, login, logout, forgetPassword, resetPassword, protect, updatePassword, restrictTo } from "../controllers/authController.js";
+import { uploadImage, resizeUserPhoto, updateMe, deleteMe, getMe, getUser, getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController.ts";
+import { signup, login, logout, forgetPassword, resetPassword, protect, updatePassword, restrictTo } from "../controllers/authController.ts";
 
 const router = Router();
 

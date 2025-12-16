@@ -1,10 +1,10 @@
 import multer, { memoryStorage } from 'multer';
 import sharp from 'sharp';
 
-import catchAsync from '../src/utils/catchAsync.js';
-import Tour from '../src/models/Tour.js';
-import { getAll, getOne, createOne, updateOne, deleteOne } from "./handlerFactory.js";
-import AppError from '../src/utils/AppError.js';
+import catchAsync from '../utils/catchAsync.ts';
+import Tour from '../models/Tour.ts';
+import { getAll, getOne, createOne, updateOne, deleteOne } from "./handlerFactory.ts";
+import AppError from '../utils/AppError.ts';
 
 function toRadian(distance, unit) {
   return unit === "mi" ? distance / 3963.2 : distance / 6378.1;

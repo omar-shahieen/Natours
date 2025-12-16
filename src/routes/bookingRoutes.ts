@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getCheckoutSession, getAllBookings, createBookings, getOneBookings, updateBookings, deleteBookings } from '../controllers/bookingController.js';
-import { protect, restrictTo } from '../controllers/authController.js';
+import { getCheckoutSession, getAllBookings, createBookings, getOneBookings, updateBookings, deleteBookings } from '../controllers/bookingController.ts';
+import { protect, restrictTo } from '../controllers/authController.ts';
 
 const router = Router();
 

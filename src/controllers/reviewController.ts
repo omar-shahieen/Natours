@@ -1,7 +1,7 @@
-import Review from "../src/models/Review.js";
-import Tour from "../src/models/Tour.js";
-import AppError from "../src/utils/AppError.js";
-import { getOne, createOne, deleteOne, updateOne, getAll } from "./handlerFactory.js";
+import Review from "../models/Review.ts";
+import Tour from "../models/Tour.ts";
+import AppError from "../utils/AppError.ts";
+import { getOne, createOne, deleteOne, updateOne, getAll } from "./handlerFactory.ts";
 
 
 

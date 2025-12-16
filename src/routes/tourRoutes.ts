@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { aliasTopTours, getAllTours, getTourStats, getMonthlyPlan, getTourWithIn, getDistances, createTour, getTour, uploadTourImages, resizeTourImages, updateTour, deleteTour } from '../controllers/tourController.js';
-import { protect, restrictTo } from '../controllers/authController.js';
-import reviewRouter from "./reviewRoutes.js";
+import { aliasTopTours, getAllTours, getTourStats, getMonthlyPlan, getTourWithIn, getDistances, createTour, getTour, uploadTourImages, resizeTourImages, updateTour, deleteTour } from '../controllers/tourController.ts';
+import { protect, restrictTo } from '../controllers/authController.ts';
+import reviewRouter from "./reviewRoutes.ts";
 
 const router = Router();
 

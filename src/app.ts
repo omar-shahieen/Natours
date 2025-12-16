@@ -8,13 +8,13 @@ import rateLimit from "express-rate-limit";
 import { sanitize } from 'express-mongo-sanitize';
 import xss from "xss";
 import hpp from "hpp";
-import tourRouter from './routes/tourRoutes.js';
-import userRouter from './routes/userRoutes.js';
-import reviewRouter from './routes/reviewRoutes.js';
-import viewRouter from './routes/viewRoutes.js';
-import bookingRouter from './routes/bookingRoutes.js';
-import AppError from './utils/AppError.js';
-import globalErrorHandler from './controllers/errorController.js';
+import tourRouter from './routes/tourRoutes.ts';
+import userRouter from './routes/userRoutes.ts';
+import reviewRouter from './routes/reviewRoutes.ts';
+import viewRouter from './routes/viewRoutes.ts';
+import bookingRouter from './routes/bookingRoutes.ts';
+import AppError from './utils/AppError.ts';
+import globalErrorHandler from './controllers/errorController.ts';
 
 
 const app = express();
