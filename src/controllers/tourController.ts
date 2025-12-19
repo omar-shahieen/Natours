@@ -1,54 +1,78 @@
-import multer, { memoryStorage } from 'multer';
+import type { Request, NextFunction, Response } from 'express';
+import multer, { memoryStorage, type FileFilterCallback } from 'multer';
 import sharp from 'sharp';
 
-import catchAsync from '../utils/catchAsync.ts';
-import Tour from '../models/Tour.ts';
-import { getAll, getOne, createOne, updateOne, deleteOne } from "./handlerFactory.ts";
-import AppError from '../utils/AppError.ts';
+import Tour from '../models/Tour.js';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
+import { getAll, getOne, createOne, updateOne, deleteOne } from "./handlerFactory.js";
 
-function toRadian(distance, unit) {
+// Helper to convert distance to radians
+function toRadian(distance: number, unit: "mi" | "km") {
   return unit === "mi" ? distance / 3963.2 : distance / 6378.1;
 }
-export function aliasTopTours(req, res, next) {
-  req.url = req.url.replace("/top-5-cheap",
-    "?sort=ratingAverage,price&limit=5&fields=name,price,ratingAverage,summary,difficulty")
+
+
+// Alias middleware
+export function aliasTopTours(req: Request, res: Response, next: NextFunction) {
+  req.url = req.url.replace(
+    "/top-5-cheap",
+    "?sort=ratingAverage,price&limit=5&fields=name,price,ratingAverage,summary,difficulty"
+  );
   next();
 }
-// upload images 
+
+// ----------------- MULTER -----------------
 const multerStorage = memoryStorage();
-const multerFilter = (req, file, cb) => {
+
+//filter cb
+const multerFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   if (file.mimetype.startsWith("image")) {
-    cb(null, true)
+    cb(null, true);
   } else {
-    cb(new AppError("Please upload only images!", 400), false)
+    cb(new AppError("Please upload only images!", 400));
   }
-}
+};
+
 const upload = multer({
   storage: multerStorage,
-  fileFilter: multerFilter
+  fileFilter: multerFilter,
 });
 
+// upload fileds
 export const uploadTourImages = upload.fields([
   { name: "imageCover", maxCount: 1 },
   { name: "images", maxCount: 3 },
 ]);
 
-export const resizeTourImages = catchAsync(async (req, res, next) => {
-  if (!req.files.imageCover || !req.files.images) next();
+interface TourFiles {
+  imageCover?: Express.Multer.File[];
+  images?: Express.Multer.File[];
+}
+
+
+export const resizeTourImages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+  const files = req.files as TourFiles;
+
+  // If no files, skip
+  if (!files || !files.imageCover || !files.imageCover[0] || !files.images) return next();
 
   // cover image
+  const imageCoverFile = files.imageCover[0];
   req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
-  await sharp(req.files.imageCover[0].buffer)
+
+  await sharp(imageCoverFile.buffer)
     .resize(2000, 1333)
     .toFormat("jpeg")
     .jpeg({ quality: 90 })
     .toFile(`public/img/tours/${req.body.imageCover}`);
 
 
-  //  images
+  //  other images
 
   req.body.images = [];
-  const imgPromisies = req.files.images.map(async (file, i) => {
+  const imgPromisies = files.images.map(async (file, i) => {
     const fileName = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
     await sharp(file.buffer)
       .resize(2000, 1333)
@@ -57,11 +81,16 @@ export const resizeTourImages = catchAsync(async (req, res, next) => {
       .toFile(`public/img/tours/${fileName}`);
     req.body.images.push(fileName);
 
-  })
+  });
+
   await Promise.all(imgPromisies);
 
   next();
 });
+
+
+// ----------------- CRUD HANDLERS -----------------
+
 export const getAllTours = getAll(Tour);
 
 export const getTour = getOne(Tour);
@@ -72,7 +101,7 @@ export const updateTour = updateOne(Tour);
 
 export const deleteTour = deleteOne(Tour);
 
-export const getTourStats = catchAsync(async (req, res, next) => {
+export const getTourStats = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
   const stats = await Tour.aggregate([
     {
@@ -101,59 +130,100 @@ export const getTourStats = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getMonthlyPlan = catchAsync(async (req, res, next) => {
-  const year = req.params.year * 1;
+export const getMonthlyPlan = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const year = Number(req.params.year);
 
   const plan = await Tour.aggregate([
     {
-      $unwind: '$startDates'
+      $unwind: '$startDates',
     },
     {
       $match: {
         startDates: {
           $gte: new Date(`${year}-01-01`),
-          $lte: new Date(`${year}-12-31`)
-        }
-      }
+          $lte: new Date(`${year}-12-31`),
+        },
+      },
     },
     {
       $group: {
         _id: { $month: '$startDates' },
         numTourStarts: { $sum: 1 },
-        tours: { $push: '$name' }
-      }
+        tours: { $push: '$name' },
+      },
     },
     {
-      $addFields: { month: '$_id' }
+      $addFields: { month: '$_id' },
     },
     {
       $project: {
-        _id: 0
-      }
+        _id: 0,
+      },
     },
     {
-      $sort: { numTourStarts: -1 }
+      $sort: { numTourStarts: -1 },
     },
     {
-      $limit: 12
-    }
+      $limit: 12,
+    },
   ]);
 
   res.status(200).json({
     status: 'success',
     data: {
-      plan
+      plan,
     }
   });
 
 });
+
+
+export const validateLatLng = (req: Request, res: Response, next: NextFunction) => {
+
+  const { latlng } = req.params;
+
+  if (!latlng) return next(new AppError('No location provided', 400));
+
+
+  const [latStr, lngStr] = latlng.split(",");
+  if (!latStr || !lngStr) {
+    return next(new AppError(
+      "Please provide the tour longitude and latitude in the format lat,lng",
+      400
+    ));
+  }
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
+
+  if (Number.isNaN(lat) || Number.isNaN(lng))
+    return next(new AppError(
+      "lat and lng must be numbers",
+      400
+    ));
+
+
+  req.body.coordinates = { lat, lng };
+
+  next();
+};
+
+
+// Typed interfaces for params
+interface TourWithinParams {
+  distance: string;  // will parse to number
+  unit: "mi" | "km";
+}
+
+interface DistancesParams {
+  unit: "mi" | "km";
+}
 export const getTourWithIn = catchAsync(
-  async (req, res, next) => {
-    const { distance, latlng, unit } = req.params;
-    const [lat, lng] = latlng.split(",");
-    if (!lat || !lng)
-      return next(new AppError("please provide the tour longtitude and lattiude in the format lat,lng", 400));
-    const radius = toRadian(distance, unit);
+  async (req: Request<TourWithinParams>, res: Response, next: NextFunction) => {
+    const { distance, unit } = req.params;
+    const { lng, lat } = req.body.coordinates;
+
+
+    const radius = toRadian(parseFloat(distance), unit);
 
     const tours = await Tour.find({
       startLocation: {
@@ -167,18 +237,16 @@ export const getTourWithIn = catchAsync(
       data: {
         data: tours
       }
-    })
-  });
-export const getDistances = catchAsync(
-  async (req, res, next) => {
-    const { latlng, unit } = req.params;
-    const [lat, lng] = latlng.split(",");
+    });
 
+  });
+
+export const getDistances = catchAsync(
+  async (req: Request<DistancesParams>, res: Response, next: NextFunction) => {
+    const { unit } = req.params;
+    const { lng, lat } = req.body.coordinates;
 
     const multiplier = unit === "mi" ? 0.00062137 : 0.001;
-
-    if (!lat || !lng)
-      return next(new AppError("please provide the tour longtitude and lattiude in the format lat,lng", 400));
 
     const distances = await Tour.aggregate([
       {
@@ -202,5 +270,6 @@ export const getDistances = catchAsync(
       data: {
         data: distances
       }
-    })
+    });
+
   });

@@ -1,5 +1,20 @@
-import { Schema, model } from "mongoose";
-import Tour from "./Tour.ts";
+import mongoose, { Schema, Document } from "mongoose";
+import type { Query, Types, Model } from "mongoose";
+import Tour from "./Tour.js";
+import type { IReview } from "../interfaces/review.interface.ts";
+
+
+export interface ReviewDocument extends IReview, Document {
+    _id: Types.ObjectId;
+
+}
+interface ReviewQuery extends Query<ReviewDocument, ReviewDocument> {
+    reviewDoc?: ReviewDocument | null;
+}
+interface ReviewModel extends Model<ReviewDocument> {
+    calcAverageRatings(tourId: Types.ObjectId): Promise<void>;
+}
+
 
 const reviewSchema = new Schema({
     review: {
@@ -32,13 +47,13 @@ const reviewSchema = new Schema({
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-})
+});
 
 //indexes
 reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 
 // pre save query
-reviewSchema.pre(/^find/, function (next) {
+reviewSchema.pre<Query<ReviewDocument, ReviewDocument>>(/^find/, function (next) {
     this.populate({
         path: "user",
         select: "name photo"
@@ -48,7 +63,7 @@ reviewSchema.pre(/^find/, function (next) {
 
 // static methods
 
-reviewSchema.statics.calcAverageRatings = async function (tourId) {
+reviewSchema.statics.calcAverageRatings = async function (this: Model<ReviewDocument>, tourId: Types.ObjectId): Promise<void> {
     const stats = await this.aggregate([
         {
             $match: { tour: tourId }
@@ -74,27 +89,29 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
             ratingsAverage: 4.5
         });
     }
-}
+};
+
 // post doc middleware
-reviewSchema.post("save", function () {
-    // this points the current doc
-    this.constructor.calcAverageRatings(this.tour);
-})
+reviewSchema.post('save', function (this: ReviewDocument) {
+    const model = this.constructor as ReviewModel;
+    model.calcAverageRatings(this.tour);
+});
 
 //  query middleware
 
-reviewSchema.pre(/^findOneAnd/, async function (next) {
+reviewSchema.pre(/^findOneAnd/, async function (this: ReviewQuery, next) {
     // find the document manually
-    this.r = await this.model.findOne(this.getQuery());
+    this.reviewDoc = await this.model.findOne(this.getQuery());
     next();
 });
 
 // POST middleware
-reviewSchema.post(/^findOneAnd/, async function () {
-    if (this.r) {
-        await this.r.constructor.calcAverageRatings(this.r.tour);
+reviewSchema.post(/^findOneAnd/, async function (this: ReviewQuery) {
+    if (this.reviewDoc) {
+        const model = this.reviewDoc.constructor as ReviewModel;
+        await model.calcAverageRatings(this.reviewDoc.tour);
     }
 });
-const Review = model("Review", reviewSchema);
+const Review = mongoose.model<ReviewDocument>("Review", reviewSchema);
 
 export default Review;

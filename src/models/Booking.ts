@@ -1,10 +1,19 @@
-import { Schema, model } from "mongoose";
+import { Schema, type Types, model, Document, type CallbackWithoutResultAndOptionalError, type Query } from "mongoose";
+
+import type { IBooking } from "../interfaces/booking.interface.ts";
+
+
+
+export interface BookingDocument extends Document, IBooking {
+    _id: Types.ObjectId;
+
+}
 
 const bookingSchema = new Schema({
     tour: {
         type: Schema.Types.ObjectId,
         ref: "Tour",
-        required: [true, "Booking must belong to tour"]
+        required: [true, 'Booking must belong to tour'],
     },
     user: {
         type: Schema.Types.ObjectId,
@@ -31,13 +40,13 @@ const bookingSchema = new Schema({
     toObject: { virtuals: true },
 })
 
-bookingSchema.pre(/^find/, function (next) {
+bookingSchema.pre(/^find/, function (this: Query<BookingDocument, BookingDocument>, next: CallbackWithoutResultAndOptionalError) {
     this.populate({
         path: "tour",
         select: "name"
 
     }).populate("user");
-    next()
+    next();
 })
-const Booking = model("Booking", bookingSchema)
+const Booking = model<BookingDocument>("Booking", bookingSchema)
 export default Booking;

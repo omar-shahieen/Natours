@@ -1,5 +1,17 @@
-import { Schema, model } from 'mongoose';
-import slugify from 'slugify';
+import type { Query, Types } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
+import slug from 'slug';
+import type { ITour } from '../interfaces/tour.interface.ts';
+import type { ReviewDocument } from './Review.ts';
+
+
+
+export interface TourDocument extends ITour, Document {
+    _id: Types.ObjectId;
+    durationWeeks: number,
+    reviews?: ReviewDocument[]
+}
+
 
 const tourSchema = new Schema({
     name: {
@@ -8,7 +20,7 @@ const tourSchema = new Schema({
         unique: true,
         trim: true,
         minlength: [10, "A tour nume must have more than or equal to 10 characters"],
-        maxlength: [40, "A tour nume must have less than  or equal to 40 characters"]
+        maxlength: [40, "A tour nume must have less than  or equal to 40 characters"],
     },
     maxGroupSize: {
         type: Number,
@@ -16,22 +28,23 @@ const tourSchema = new Schema({
     },
     price: {
         type: Number,
-        required: [true, "A tour must have a price"]
+        required: [true, "A tour must have a price"],
     },
     slug: String,
     priceDiscount: {
         type: Number,
         validate: {
-            validator: function (value) {
+            validator: function (value: number) {
                 // this point to the current doc being  new created  not work with update
                 return value < this.price;
             },
-            message: "Discount Price ({VALUE}) should be less than the actual price"
-        }
+
+            message: "Discount Price ({VALUE}) should be less than the actual price",
+        },
     },
     duration: {
         type: Number,
-        required: [true, "A tour must have a duration"]
+        required: [true, "A tour must have a duration"],
     },
     difficulty: {
         type: String,
@@ -39,53 +52,54 @@ const tourSchema = new Schema({
         trim: true,
         enum: {
             values: ["easy", "medium", "difficult"],
-            message: "Tour Difficulty must be : easy , medium , difficult"
-        }
+            message: "Tour Difficulty must be : easy , medium , difficult",
+        },
     },
     ratingsAverage: {
         type: Number,
         default: 4.5,
         min: [1, "Rating must be above 1.0"],
         max: [5, "Rating must be below 5.0"],
-        set: val => Math.round(val * 10) / 10 // 4.67 -> 46.7 -> 47 -> 4.7  
+        set: (val: number) => Math.round(val * 10) / 10, // 4.67 -> 46.7 -> 47 -> 4.7  
     },
     ratingsQuantity: {
         type: Number,
-        default: 0
+        default: 0,
     },
     summary: {
         type: String,
         required: [true, "A tour must have a summary"],
-        trim: true
+        trim: true,
     },
     description: {
         type: String,
-        trim: true
+        trim: true,
     },
     imageCover: {
         type: String,
         required: [true, "A tour must have an imageCover"],
-        trim: true
+        trim: true,
     },
     images: [String],
     startDates: [Date],
     createdAt: {
         type: Date,
         default: Date.now(),
-        select: false
+        select: false,
     },
     secretTour: {
         type: Boolean,
         default: false,
-    }, startLocation: {
+    },
+    startLocation: {
         type: {
             type: String,
             default: 'Point',
-            enum: ["Point"]
+            enum: ["Point"],
         },
         coordinates: [Number],
         address: String,
-        description: String
+        description: String,
     },
     locations: [
         {
@@ -93,18 +107,19 @@ const tourSchema = new Schema({
             type: {
                 type: String,
                 default: "Point",
-                enum: ["Point"]
+                enum: ["Point"],
             },
             coordinates: [Number],
             address: String,
             description: String,
-            day: Number // day for this location
-        }
+            day: Number, // day for this location
+        },
     ],
     guides: [{
         type: Schema.ObjectId,
         ref: 'User',
-    },]
+    },
+    ],
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -121,37 +136,37 @@ tourSchema.virtual('durationWeeks').get(function () { // function give access to
 tourSchema.virtual('reviews', {
     ref: 'Review',
     foreignField: 'tour',
-    localField: '_id'
+    localField: '_id',
 });
 
 // DOCUMENT middleware : this point to documnet processed
 
 // runs before .save and .create 
-tourSchema.pre('save', function (next) { // pre save hook
-    this.slug = slugify(this.name, { lower: true });
+tourSchema.pre<TourDocument>('save', function (this: TourDocument, next) { // pre save hook
+    this.slug = slug(this.name, { lower: true });
     next();
-})
+});
 
 
 // QUERY middlewares : this point to query
-tourSchema.pre(/^find/, function (next) {
+tourSchema.pre(/^find/, function (this: Query<TourDocument, TourDocument>, next) {
     this.find({ secretTour: { $ne: true } }); // Documents where secretTour is false or missing or undefined
-    next()
-})
+    next();
+});
 
-tourSchema.pre(/^find/, function (next) {
+tourSchema.pre(/^find/, function (this: Query<TourDocument, TourDocument>, next) {
     this.populate({
         path: "guides",
-        select: "-__v -passwordChangedAt"
+        select: "-__v -passwordChangedAt",
     }); // create a new query for guides 
     next();
-})
-tourSchema.pre(/^findOne/, function (next) {
-    this.populate({
+});
+tourSchema.pre(/^findOne/, function (this: Query<TourDocument, TourDocument>, next) {
+    this.populate<{ reviews: ReviewDocument[] }>({
         path: "reviews",
     }); // populate reviews
     next();
-})
+});
 // aggregate middleware : this points to aggregate obj
 // tourSchema.pre("aggregate", function (next) {
 //     this.pipeline().unshift({
@@ -159,6 +174,6 @@ tourSchema.pre(/^findOne/, function (next) {
 //     })
 //     next()
 // })
-const Tour = model('Tour', tourSchema);
+const Tour = model<TourDocument>('Tour', tourSchema);
 
 export default Tour;

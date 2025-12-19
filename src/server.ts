@@ -1,11 +1,13 @@
-
+import './config/env.ts';
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+import app from "./app.js";
 
-dotenv.config({ path: "./config.env" });
+/* ===============================
+   UNCAUGHT EXCEPTIONS (sync)
+================================ */
 
 
-// for sync errors
+
 process.on('uncaughtException', (err) => {
   console.log("uncaughtException : shutting down...");
   console.log(err);
@@ -15,40 +17,49 @@ process.on('uncaughtException', (err) => {
 
 
 
-// eslint-disable-next-line 
-import app from "../app.ts";
 
-//  database connection
-const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DB_PASSWORD).replace("<USER_NAME>", process.env.DB_USERNAME);
-mongoose.connect(DB).then(() => {
-  console.log("DB Connected to ", mongoose.connection.name);
-}).catch((err) => console.log(err.message));
+/* ===============================
+  DB Connection
+================================ */
 
-// server listening
-const port = process.env.PORT || 3000;
+const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DB_PASSWORD)
+  .replace("<USER_NAME>", process.env.DB_USERNAME!);
+mongoose.connect(DB)
+  .then(() => {
+    console.log("DB Connected to ", mongoose.connection.name);
+  })
+  .catch((err: Error) => console.log(err.message));
+
+/* ===============================
+   SERVER
+================================ */
+const port = process.env.PORT;
+
 const server = app.listen(port, () => {
+
   console.log(`App running on port ${port}...`);
+
 });
 
-// unhandledRejection global error handling 
-process.on('unhandledRejection', (err) => {
-  console.log(err.name: string, err.message : string);
-  console.log("unhandledRejection : shutting down...");
-  // stop accepting new requests
-  server.close(() => {
-    // close DB connection if you have one (example with mongoose)
-    if (mongoose && mongoose.connection) {
-      mongoose.connection.close(false)
-        .then(() => {
-          console.log("MongoDB connection closed.");
-          process.exit(1);
-        })
-        .catch(error => {
-          console.error("Error closing MongoDB connection:", error);
-          process.exit(1);
-        });
-    } else {
+/* =============================
+  unhandledRejection global error handling 
+ ================================ */
+
+
+
+process.on("unhandledRejection", async (err: Error) => {
+  console.error("UNHANDLED REJECTION 💥 Shutting down...");
+
+  console.error(err.name, err.message);
+
+  server.close(async () => {
+    try {
+      await mongoose.connection.close(false);
+      console.log("MongoDB connection closed.");
+      process.exit(1);
+    } catch (error) {
+      console.error("Error closing MongoDB connection:", error);
       process.exit(1);
     }
   });
-})
+});

@@ -1,9 +1,11 @@
-import APIFeatures from "../utils/APIFeatures.ts";
-import AppError from "../utils/AppError.ts";
-import catchAsync from "../utils/catchAsync.ts";
+import type { Model, Document, PopulateOptions } from "mongoose";
+import type { Request, NextFunction, Response } from 'express';
+import APIFeatures from "../utils/APIFeatures.js";
+import AppError from "../utils/AppError.js";
+import catchAsync from "../utils/catchAsync.js";
 
-export function deleteOne(model) {
-    return catchAsync(async (req, res, next) => {
+export function deleteOne<T extends Document>(model: Model<T>) {
+    return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
         const doc = await model.findByIdAndDelete(req.params.id);
 
         if (!doc) {
@@ -11,44 +13,44 @@ export function deleteOne(model) {
         }
         res.status(204).json({
             status: 'success',
-            data: null
+            data: null,
         });
 
     });
 }
 
-export function updateOne(Model) {
-    return catchAsync(async (req, res, next) => {
-        const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+export function updateOne<T extends Document>(model: Model<T>) {
+    return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const doc = await model.findByIdAndUpdate(req.params.id, req.body, {
             runValidators: true,
-            new: true
+            new: true,
         });
         if (!doc) {
             next(new AppError("there is no document with this id", 404));
         }
         res.status(200).json({
             isSuccess: true,
-            data: doc
-        })
+            data: doc,
+        });
     });
 }
 
-export function createOne(Model) {
-    return catchAsync(async (req, res, next) => {
-        const doc = await Model.create(req.body);
+export function createOne<T extends Document>(model: Model<T>) {
+    return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const doc = await model.create(req.body);
 
         res.status(201).json({ //created
             isSuccess: true,
             data: {
-                data: doc
-            }
-        })
+                data: doc,
+            },
+        });
     });
 }
 
-export function getOne(Model, popOptions) {
-    return catchAsync(async (req, res, next) => {
-        let query = Model.findById(req.params.id);
+export function getOne<T extends Document>(model: Model<T>, popOptions?: PopulateOptions | PopulateOptions[]) {
+    return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+        let query = model.findById(req.params.id);
 
         if (popOptions) query = query.populate(popOptions);
 
@@ -60,29 +62,31 @@ export function getOne(Model, popOptions) {
         res.status(200).json({
             status: 'success',
             data: {
-                data: doc
-            }
+                data: doc,
+            },
         });
 
     });
 }
 
-export function getAll(Model) {
-    return catchAsync(async (req, res, next) => {
+export function getAll<T extends Document>(model: Model<T>) {
+    return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
         // to allow get review in nested tour route
         let filter = {};
         if (req.params.tourId) filter = { tour: req.params.tourId };
 
 
-        const features = new APIFeatures(Model.find(filter), req.query).filter().limitFields().paginate().sort();
+        const features = new APIFeatures(model.find(filter), req.query as unknown as Record<string, string>).filter().limitFields().paginate().sort();
+
         // const docs = await features.query.explain(); //for experiments
-        const docs = await features.query;
+        const docs: T[] = await features.query;
+
         res.status(200).json({
             status: 'success',
             length: docs.length,
             data: {
-                data: docs
-            }
-        })
+                data: docs,
+            },
+        });
     });
 }

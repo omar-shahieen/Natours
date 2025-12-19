@@ -1,11 +1,20 @@
 import { createTransport } from "nodemailer";
 import { renderFile } from "pug";
 import { convert } from "html-to-text";
+import type { UserDocument } from "../models/User.ts";
 
 class Email {
-    constructor(user, url) {
+    private to: string;
+
+    private firstName: string;
+
+    private url: string;
+
+    private from: string;
+
+    constructor(user: UserDocument, url: string) {
         this.to = user.email;
-        this.firstName = user.name.split(" ")[0];
+        this.firstName = user.name.split(" ")[0]!;
         this.url = url;
         this.from = `Omar Mohamed ${process.env.EMAIL_FROM}`;
     }
@@ -19,7 +28,8 @@ class Email {
                     user: process.env.EMAIL_USERNAME_SENDGRID,
                     pass: process.env.EMAIL_PASSWORD_SENDGRID
                 }
-            });;
+            });
+
         }
         // use mailtrailer to test 
         return createTransport({
@@ -32,7 +42,7 @@ class Email {
         });
     }
 
-    async send(template, subject) {
+    async send(template: string, subject: string) {
 
         // render html based on a pug template
 
@@ -51,15 +61,15 @@ class Email {
             subject: subject,
             html,
             text: convert(html)
-        }
+        };
 
         // create a transport and send email
-        await this.newTransport().sendMail(emailOption)
+        await this.newTransport().sendMail(emailOption);
 
     }
 
     async sendSayWelcome() {
-        await this.send("welcome", "Welcome to the natours app for new adventure ?!")
+        await this.send("welcome", "Welcome to the natours app for new adventure ?!");
     }
 
     async sendResetPassword() {

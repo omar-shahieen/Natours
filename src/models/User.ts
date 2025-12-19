@@ -1,7 +1,18 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import crypto from "crypto";
+import type { Query, Types } from 'mongoose';
+import type { IUser } from '../interfaces/user.interface.ts';
+
+
+export interface UserDocument extends IUser, Document {
+    _id: Types.ObjectId;
+    correctPassword(candidatePassword: string, password: string): Promise<boolean>,
+    generatePasswordResetToken(): string,
+    hasChangePassword(jwtToken: number): boolean,
+
+}
 
 const userSchema = new Schema({
     email: {
@@ -14,7 +25,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ["user", "guide", "guide-lead", "admin"],
+        enum: ["user", "guide", "lead-guide", "admin"],
         default: "user"
     },
     password: {
@@ -57,53 +68,61 @@ const userSchema = new Schema({
 });
 
 // pre save hooks
-userSchema.pre("save", async function (next) {
+userSchema.pre<UserDocument>("save", async function (next) {
     // if password not modified go the next middleware
     if (!this.isModified("password")) return next();
+
     // hash the password with salt 12 
     this.password = await bcrypt.hash(this.password, 12);
+
     // delete passwordConfirm field 
     this.passwordConfirm = undefined;
+
+
     next();
-})
-userSchema.pre("save", function (next) {
+});
+
+
+userSchema.pre<UserDocument>("save", function (next) {
     // if password not modified go the next middleware
     if (!this.isModified("password") || this.isNew) return next();
 
-    this.passwordChangedAt = Date.now() - 1000; // because saving to db slower than issuing the token so it may not worked 
-    next()
-})
+    this.passwordChangedAt = new Date(Date.now() - 1000); // because saving to db slower than issuing the token so it may not worked 
+    next();
+});
 
 // query middleWares 
-userSchema.pre(/^find/, function (next) {
+userSchema.pre<Query<UserDocument, UserDocument>>(/^find/, function (next) {
     this.find({ active: { $ne: false } });
-    next()
-})
+    next();
+});
 
 
 
 // instance methoes
-userSchema.methods.correctPassword = async (candidatePassword, password) => {
+userSchema.methods.correctPassword = async (candidatePassword: string, password: string): Promise<boolean> => {
     // this.password not available because select set to true 
-    return await bcrypt.compare(candidatePassword, password);
-}
-userSchema.methods.hasChangePassword = async function (jwtToken) {
+    const isCorrect = await bcrypt.compare(candidatePassword, password);
+    return isCorrect;
+};
+
+userSchema.methods.hasChangePassword = function (this: UserDocument, jwtToken: number): boolean {
     if (this.passwordChangedAt) {
-        const changedTimestamp = parseInt(
-            this.passwordChangedAt.getTime() / 1000,
-            10
-        );
+        const changedTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1000);
         return jwtToken < changedTimestamp;
     }
     // false mean not change and pass
-    return false
+    return false;
 };
-userSchema.methods.generatePasswordResetToken = function () {
+
+
+userSchema.methods.generatePasswordResetToken = function (this: UserDocument): string {
     const resetToken = crypto.randomBytes(32).toString("hex"); // create random token
     this.passwordResetToken = crypto.createHash("sha256").update(resetToken).digest('hex'); // hash token to db
-    this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 min from now 
+    this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min from now 
     return resetToken; // return the  unIncrepted token to send it by email 
-}
-const User = model("User", userSchema);
+};
+
+const User = model<UserDocument>("User", userSchema);
 
 export default User;

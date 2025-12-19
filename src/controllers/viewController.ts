@@ -1,10 +1,11 @@
-import Booking from "../models/Booking.ts";
-import Tour from "../models/Tour.ts";
-import AppError from "../utils/AppError.ts";
-import catchAsync from "../utils/catchAsync.ts";
+import type { NextFunction, Response, Request } from 'express';
+import Booking from "../models/Booking.js";
+import Tour from "../models/Tour.js";
+import AppError from "../utils/AppError.js";
+import catchAsync from "../utils/catchAsync.js";
 
 
-export const getOverview = catchAsync(async (req, res) => {
+export const getOverview = catchAsync(async (req: Request, res: Response) => {
     // get tour data from collectoin 
     const tours = await Tour.find();
 
@@ -15,12 +16,14 @@ export const getOverview = catchAsync(async (req, res) => {
         tours
     });
 });
-export const getTour = catchAsync(async (req, res, next) => {
+export const getTour = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     //get tour data
-    const tour = await Tour.findOne({ slug: req.params.slug }).populate({
-        path: "reviews",
-        fields: "review rating user"
-    });
+    // const tour = await Tour.findOne({ slug: req.params.slug }).populate({
+    //     path: "reviews",
+    //     fields: "review rating user"
+    // });
+    const tour = await Tour.findOne({ slug: req.params.slug }).populate("reviews");
+
     if (!tour)
         return next(new AppError("no tour with this name", 404));
 
@@ -31,22 +34,23 @@ export const getTour = catchAsync(async (req, res, next) => {
 });
 
 
-export function getLoginForm(req, res) {
+export function getLoginForm(req: Request, res: Response) {
 
     res.status(200).render("login", {
         title: "log Into your account"
     });
 }
 
-export function getMe(req, res) {
+export function getMe(req: Request, res: Response) {
 
     res.status(200).render("account", {
         title: "Your Account"
     });
 }
 
-export const getMyTours = catchAsync(async (req, res, next) => {
-    const booking = await Booking.find({ user: req.user.id });
+export const getMyTours = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const booking = await Booking.find({ user: req.user!.id });
 
     const tourIds = booking.map(el => el.tour);
     const tours = await Tour.find({ _id: { $in: tourIds } });
@@ -54,7 +58,7 @@ export const getMyTours = catchAsync(async (req, res, next) => {
     res.status(200).render("overview", {
         title: "My Tours",
         tours
-    })
+    });
 
 
-})
+});

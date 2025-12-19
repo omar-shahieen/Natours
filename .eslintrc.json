@@ -42,7 +42,10 @@
     "node/no-unsupported-features/es-syntax": "off",
     "node/no-missing-import": "off",
 
-    "prettier/prettier": "off",
+    "prettier/prettier": ["off", { "singleQuote": true }],
+    "@typescript-eslint/quotes": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/comma-dangle": "off",
     "spaced-comment": "off",
     "no-console": "warn",
     "func-names": "off",
@@ -62,7 +65,7 @@
         "js": "always",
         "mjs": "always",
         "jsx": "never",
-        "ts": "never",
+        "ts": "always",
         "tsx": "never"
       }
     ]

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { getOverview, getTour, getLoginForm, getMe, getMyTours } from "../controllers/viewController.ts";
-import { createBookingCheckout } from "../controllers/bookingController.ts";
-import { isLoggedIn, protect } from "../controllers/authController.ts";
+import { getOverview, getTour, getLoginForm, getMe, getMyTours } from "../controllers/viewController.js";
+import { createBookingCheckout } from "../controllers/bookingController.js";
+import { isLoggedIn, protect } from "../controllers/authController.js";
 
 const router = Router();
 

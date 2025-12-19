@@ -1,52 +1,63 @@
 import { Router } from 'express';
-import { aliasTopTours, getAllTours, getTourStats, getMonthlyPlan, getTourWithIn, getDistances, createTour, getTour, uploadTourImages, resizeTourImages, updateTour, deleteTour } from '../controllers/tourController.ts';
-import { protect, restrictTo } from '../controllers/authController.ts';
-import reviewRouter from "./reviewRoutes.ts";
+import { aliasTopTours, getAllTours, getTourStats, getMonthlyPlan, getTourWithIn, getDistances, createTour, getTour, uploadTourImages, resizeTourImages, updateTour, deleteTour, validateLatLng } from '../controllers/tourController.js';
+import { protect, restrictTo } from '../controllers/authController.js';
+import reviewRouter from "./reviewRoutes.js";
 
 const router = Router();
 
 
 router
   .route('/top-5-cheap')
-  .get(aliasTopTours, getAllTours)
+  .get(aliasTopTours, getAllTours);
+
 router
   .route('/tour-stats')
   .get(getTourStats);
+
+
 router
   .route('/monthly-plan/:year')
   .get(
     protect,
-    restrictTo("admin", "guide-lead", "guide"),
+    restrictTo("admin", "lead-guide", "guide"),
     getMonthlyPlan);
 
 
 router
   .route("/tours-within/:distance/center/:latlng/unit/:unit")
-  .get(getTourWithIn);
+  .get(validateLatLng, getTourWithIn);
+
+
 router
   .route("/distances/:latlng/unit/:unit")
-  .get(getDistances);
+  .get(validateLatLng, getDistances);
+
 
 router
   .route('/')
+
   .get(getAllTours)
+
   .post(
     protect,
-    restrictTo("admin", "guide-lead"),
+    restrictTo("admin", "lead-guide"),
     createTour);
+
 
 router
   .route('/:id')
   .get(getTour)
+
   .patch(
     protect,
-    restrictTo("admin", "guide-lead"),
+    restrictTo("admin", "lead-guide"),
     uploadTourImages,
     resizeTourImages,
     updateTour)
+
   .delete(
     protect,
-    restrictTo("admin", "guide-lead"),
+    restrictTo("admin", "lead-guide"),
     deleteTour);
 
 // reviews

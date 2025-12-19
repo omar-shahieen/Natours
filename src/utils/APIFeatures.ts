@@ -1,5 +1,11 @@
-export default class APIFeatures {
-    constructor(query, queryString) {
+import type { Query } from "mongoose";
+
+export default class APIFeatures<T> {
+    query: Query<T[], T>;
+
+    private queryString: Record<string, string>;
+
+    constructor(query: Query<T[], T>, queryString: Record<string, string>) {
         this.query = query;
         this.queryString = queryString;
     }
@@ -13,7 +19,7 @@ export default class APIFeatures {
         let queryStr = JSON.stringify(queryObj);
         queryStr = queryStr.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`);
         // apply the filter
-        this.query = this.query.find(JSON.parse(queryStr));
+        this.query.find(JSON.parse(queryStr));
         // return the obj  for chainging
         return this;
     }
@@ -21,9 +27,9 @@ export default class APIFeatures {
     sort() {
         if (this.queryString.sort) {
             const sortBy = this.queryString.sort.split(",").join(" ");
-            this.query.sort(sortBy)
+            this.query.sort(sortBy);
         } else {
-            this.query.sort("-createdAt")
+            this.query.sort("-createdAt");
         }
         return this;
     }
@@ -31,7 +37,7 @@ export default class APIFeatures {
     limitFields() { // Projection
         if (this.queryString.fields) {
             const fields = this.queryString.fields.split(",").join(" ");
-            this.query.select(fields)
+            this.query.select(fields);
         } else {
             this.query.select("-__v");
         }
@@ -40,8 +46,8 @@ export default class APIFeatures {
     }
 
     paginate() {
-        const page = this.queryString.page * 1 || 1;
-        const limit = this.queryString.limit * 1 || 100;
+        const page = Number(this.queryString.page ?? 1);
+        const limit = Number(this.queryString.limit ?? 100);
         const skip = (page - 1) * limit;
         this.query.skip(skip).limit(limit);
         return this;
