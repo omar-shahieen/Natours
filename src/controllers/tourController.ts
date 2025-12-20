@@ -202,7 +202,7 @@ export const validateLatLng = (req: Request, res: Response, next: NextFunction) 
     ));
 
 
-  req.body.coordinates = { lat, lng };
+  req.coordinates = { lat, lng };
 
   next();
 };
@@ -220,7 +220,7 @@ interface DistancesParams {
 export const getTourWithIn = catchAsync(
   async (req: Request<TourWithinParams>, res: Response, next: NextFunction) => {
     const { distance, unit } = req.params;
-    const { lng, lat } = req.body.coordinates;
+    const { lng, lat } = req.coordinates!;
 
 
     const radius = toRadian(parseFloat(distance), unit);
@@ -244,7 +244,7 @@ export const getTourWithIn = catchAsync(
 export const getDistances = catchAsync(
   async (req: Request<DistancesParams>, res: Response, next: NextFunction) => {
     const { unit } = req.params;
-    const { lng, lat } = req.body.coordinates;
+    const { lng, lat } = req.coordinates!;
 
     const multiplier = unit === "mi" ? 0.00062137 : 0.001;
 

@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "debug": "ndb src/server.js",
+    "debug": "ndb src/server.ts",
     "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
     "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
   },

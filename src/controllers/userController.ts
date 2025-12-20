@@ -37,7 +37,7 @@ export const resizeUserPhoto = catchAsync(async (req: Request, res: Response, ne
   const imageFile = req.file as Express.Multer.File;
   if (!imageFile) return next();
 
-  imageFile.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+  imageFile.filename = `user-${req.user!.id}-${Date.now()}.jpeg`;
   await sharp(imageFile.buffer)
     .resize(500, 500)
     .toFormat("jpeg")
@@ -58,7 +58,7 @@ export const updateMe = catchAsync(async (req: Request, res: Response, next: Nex
   if (req.file) filteredObj.photo = req.file.filename;
 
   // updateUser datas
-  const user = await User.findByIdAndUpdate(req.user.id, filteredObj, {
+  const user = await User.findByIdAndUpdate(req.user!.id, filteredObj, {
     runValidators: true,
     new: true,
   }) as UserDocument;
@@ -71,14 +71,14 @@ export const updateMe = catchAsync(async (req: Request, res: Response, next: Nex
   });
 });
 export const deleteMe = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+  await User.findByIdAndUpdate(req.user!.id, { active: false });
   res.status(204).json({
     status: 'success',
     data: null,
   });
 });
 export function getMe(req: Request, res: Response, next: NextFunction) {
-  req.params.id = req.user.id;
+  req.params.id = req.user!.id;
   next();
 }
 

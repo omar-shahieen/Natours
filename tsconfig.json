@@ -31,6 +31,6 @@
     /* Node globals */
     "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "public"],
   "exclude": ["node_modules", "dist"]
 }

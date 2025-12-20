@@ -10,7 +10,7 @@ export interface UserDocument extends IUser, Document {
     _id: Types.ObjectId;
     correctPassword(candidatePassword: string, password: string): Promise<boolean>,
     generatePasswordResetToken(): string,
-    hasChangePassword(jwtToken: number): boolean,
+    hasChangePasswordAfter(jwtToken: number): boolean,
 
 }
 
@@ -106,7 +106,7 @@ userSchema.methods.correctPassword = async (candidatePassword: string, password:
     return isCorrect;
 };
 
-userSchema.methods.hasChangePassword = function (this: UserDocument, jwtToken: number): boolean {
+userSchema.methods.hasChangePasswordAfter = function (this: UserDocument, jwtToken: number): boolean {
     if (this.passwordChangedAt) {
         const changedTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1000);
         return jwtToken < changedTimestamp;

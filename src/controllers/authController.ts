@@ -124,7 +124,7 @@ export const protect = catchAsync(async (req: Request, res: Response, next: Next
     if (!currentUser)  // user delete account 
         return next(new AppError("The user belonging to this token is no longer exist", 401));
     // check if user change password
-    if (!currentUser.hasChangePassword(decoded.iat!)) {
+    if (currentUser.hasChangePasswordAfter(decoded.iat!)) {
         return next(
             new AppError("The user has changed passwords", 401)
         );
@@ -151,7 +151,7 @@ export async function isLoggedIn(req: Request, res: Response, next: NextFunction
             if (!currentUser)  // user delete account 
                 return next();
             // check if user change password
-            if (!currentUser.hasChangePassword(decoded.iat))
+            if (!currentUser.hasChangePasswordAfter(decoded.iat))
                 return next();
             // pass to pug template
             res.locals.user = currentUser;

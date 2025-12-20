@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Express (tsx)",
+      "type": "node",
+      "request": "launch",
+
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx"],
+
+      "args": ["--watch", "src/server.ts"],
+      "restart": true,
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
