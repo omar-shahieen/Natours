@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import type { Query, Types, Model } from "mongoose";
 import Tour from "./Tour.js";
-import type { IReview } from "../interfaces/review.interface.ts";
+import type { IReview } from "../interfaces/review.interface.js";
 
 
 export interface ReviewDocument extends IReview, Document {

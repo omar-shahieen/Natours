@@ -1,6 +1,6 @@
 import { Schema, type Types, model, Document, type CallbackWithoutResultAndOptionalError, type Query } from "mongoose";
 
-import type { IBooking } from "../interfaces/booking.interface.ts";
+import type { IBooking } from "../interfaces/booking.interface";
 
 
 

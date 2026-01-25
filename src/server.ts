@@ -1,6 +1,7 @@
-import './config/env.ts';
+import './config/env.js';
 import mongoose from "mongoose";
 import app from "./app.js";
+import initializeRedisClient from "./utils/redis"
 
 /* ===============================
    UNCAUGHT EXCEPTIONS (sync)
@@ -29,6 +30,13 @@ mongoose.connect(DB)
     console.log("DB Connected to ", mongoose.connection.name);
   })
   .catch((err: Error) => console.log(err.message));
+
+/* ===============================
+   Cache connection 
+================================ */
+
+await initializeRedisClient();
+
 
 /* ===============================
    SERVER

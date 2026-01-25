@@ -3,7 +3,7 @@ import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import crypto from "crypto";
 import type { Query, Types } from 'mongoose';
-import type { IUser } from '../interfaces/user.interface.ts';
+import type { IUser } from '../interfaces/user.interface.js';
 
 
 export interface UserDocument extends IUser, Document {

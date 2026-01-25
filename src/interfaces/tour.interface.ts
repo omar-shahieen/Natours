@@ -1,6 +1,6 @@
 
 import type { Types } from "mongoose";
-import type { ILocation } from "./location.interface.ts";
+import type { ILocation } from "./location.interface";
 
 export interface ITour {
     name: string,

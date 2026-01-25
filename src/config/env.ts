@@ -32,6 +32,12 @@ const envSchema = z.object({
     // Stripe
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_PUBLIC_KEY: z.string().min(1),
+
+    // Redis
+    REDIS_USERNAME: z.string().min(1),
+    REDIS_PORT: z.string().transform(Number),
+    REDIS_HOST: z.string().min(1),
+    REDIS_PASSWORD: z.string().min(1),
 });
 
 // Validate process.env
