@@ -2,7 +2,7 @@ import type { Query, Types } from 'mongoose';
 import { Schema, model, Document } from 'mongoose';
 import slug from 'slug';
 import type { ITour } from '../interfaces/tour.interface.js';
-import type { ReviewDocument } from './Review.js';
+import type { ReviewDocument } from './review.model.js';
 
 
 

@@ -1,6 +1,5 @@
 import { Schema, type Types, model, Document, type CallbackWithoutResultAndOptionalError, type Query } from "mongoose";
-
-import type { IBooking } from "../interfaces/booking.interface";
+import type { IBooking } from "../interfaces/booking.interface.js";
 
 
 
@@ -38,7 +37,8 @@ const bookingSchema = new Schema({
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-})
+});
+
 
 bookingSchema.pre(/^find/, function (this: Query<BookingDocument, BookingDocument>, next: CallbackWithoutResultAndOptionalError) {
     this.populate({
@@ -47,6 +47,8 @@ bookingSchema.pre(/^find/, function (this: Query<BookingDocument, BookingDocumen
 
     }).populate("user");
     next();
-})
-const Booking = model<BookingDocument>("Booking", bookingSchema)
+});
+
+const Booking = model<BookingDocument>("Booking", bookingSchema);
+
 export default Booking;

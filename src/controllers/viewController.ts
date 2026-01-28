@@ -1,6 +1,6 @@
 import type { NextFunction, Response, Request } from 'express';
-import Booking from "../models/Booking.js";
-import Tour from "../models/Tour.js";
+import Booking from "../models/booking.model.js";
+import Tour from "../models/tour.model.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 

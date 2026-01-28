@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import type { Query, Types, Model } from "mongoose";
-import Tour from "./Tour.js";
+import Tour from "./tour.model.js";
 import type { IReview } from "../interfaces/review.interface.js";
 
 

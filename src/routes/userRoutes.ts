@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { uploadImage, resizeUserPhoto, updateMe, deleteMe, getMe, getUser, getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController.js"
-import { signup, login, logout, forgetPassword, resetPassword, protect, updatePassword, restrictTo } from "../controllers/authController.js"
+import { uploadImage, resizeUserPhoto, updateMe, deleteMe, getMe, getUser, getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController.js";
+import { signup, login, logout, forgetPassword, resetPassword, protect, updatePassword, restrictTo } from "../controllers/authController.js";
+import cacheMiddleware from '../middleware/cacheMiddleware.js';
 
 const router = Router();
 
@@ -16,19 +17,25 @@ router.use(protect);
 router.patch("/updateMyPassword", updatePassword);
 router.patch("/updateMe", uploadImage, resizeUserPhoto, updateMe);
 router.delete("/deleteMe", deleteMe);
-router.get("/me", getMe, getUser);
+router.get("/me", getMe,
+  cacheMiddleware({ ttl: 1800, keyPrefix: 'user' }),
+  getUser);
 
 // admin restricted routes 
 router.use(restrictTo("admin"));
 
 router
   .route('/')
-  .get(getAllUsers)
+  .get(
+    cacheMiddleware({ ttl: 300, keyPrefix: 'user' }), // 5 minutes cache
+    getAllUsers)
   .post(createUser);
 
 router
   .route('/:id')
-  .get(getUser)
+  .get(
+    cacheMiddleware({ ttl: 1800, keyPrefix: 'user' }), // 30 minutes cache
+    getUser)
   .patch(updateUser)
   .delete(deleteUser);
 

@@ -1,7 +1,7 @@
 import { createTransport } from "nodemailer";
 import { renderFile } from "pug";
 import { convert } from "html-to-text";
-import type { UserDocument } from "../models/User.js";
+import type { UserDocument } from "../models/user.model.js";
 
 class Email {
     private to: string;
