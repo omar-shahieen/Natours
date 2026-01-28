@@ -45,22 +45,22 @@ app.use(express.static(join(dirName, 'public')));
 
 // ========= security headers ========= 
 
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["*"],
-//       scriptSrc: ["*", "'unsafe-inline'", "'unsafe-eval'"],
-//       styleSrc: ["*", "'unsafe-inline'"],
-//       imgSrc: ["*", "data:"],
-//       fontSrc: ["*", "data:"],
-//       connectSrc: ["*"],
-//       workerSrc: ["*", "blob:"],
-//       objectSrc: ["*"],
-//       mediaSrc: ["*"],
-//       frameSrc: ["*"]
-//     }
-//   })
-// );
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["*"],
+      scriptSrc: ["*", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["*", "'unsafe-inline'"],
+      imgSrc: ["*", "data:"],
+      fontSrc: ["*", "data:"],
+      connectSrc: ["*"],
+      workerSrc: ["*", "blob:"],
+      objectSrc: ["*"],
+      mediaSrc: ["*"],
+      frameSrc: ["*"]
+    }
+  })
+);
 
 // ========= DEV logs ========= 
 
@@ -84,12 +84,12 @@ app.use(cookieParser());// for cookie parsing
 
 // ========= data santanization against NoSQl query injection ========= 
 
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   req.body = mongoSanitize.sanitize(req.body);
-//   req.query = { ...mongoSanitize.sanitize(req.query) };
-//   req.params = { ...mongoSanitize.sanitize(req.params) };
-//   next();
-// });
+app.use((req: Request, res: Response, next: NextFunction) => {
+  req.body = mongoSanitize.sanitize(req.body);
+  // req.query = { ...mongoSanitize.sanitize(req.query) };
+  req.params = { ...mongoSanitize.sanitize(req.params) };
+  next();
+});
 
 // ========= data santanization against Xss ========= 
 

@@ -1,5 +1,5 @@
 import type { Multer } from "multer";
-import type { UserDocument } from "../models/User.js";
+import type { UserDocument } from "../models/user.model.ts";
 
 declare global {
     namespace Express {

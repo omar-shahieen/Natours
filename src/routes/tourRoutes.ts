@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { aliasTopTours, getAllTours, getTourStats, getMonthlyPlan, getTourWithIn, getDistances, createTour, getTour, uploadTourImages, resizeTourImages, updateTour, deleteTour, validateLatLng } from '../controllers/tourController.js';
 import { protect, restrictTo } from '../controllers/authController.js';
 import reviewRouter from "./reviewRoutes.js";
+import cacheMiddleware from '../middleware/cacheMiddleware.js';
 
 const router = Router();
 
@@ -12,7 +13,9 @@ router
 
 router
   .route('/tour-stats')
-  .get(getTourStats);
+  .get(
+    cacheMiddleware({ ttl: 3600, keyPrefix: 'tour' }),
+    getTourStats);
 
 
 router
@@ -36,7 +39,9 @@ router
 router
   .route('/')
 
-  .get(getAllTours)
+  .get(
+    cacheMiddleware({ ttl: 300, keyPrefix: 'api' }),
+    getAllTours)
 
   .post(
     protect,
@@ -46,7 +51,9 @@ router
 
 router
   .route('/:id')
-  .get(getTour)
+  .get(
+    cacheMiddleware({ ttl: 1800, keyPrefix: 'tour' }),
+    getTour)
 
   .patch(
     protect,
